@@ -37,8 +37,10 @@ public class GetAccountByIdHandler : BaseHandler<GetAccountByIdRequest, AccountD
 
     public override async Task<BaseResponse<AccountDto>> Handle(GetAccountByIdRequest request, CancellationToken cancellationToken)
     {
-        var account = await _unitOfWork.AccountRepository.GetAsync(request.AccountId, cancellationToken: cancellationToken);
+        var accounts = await _unitOfWork.AccountRepository
+            .GetByFilterAsync(account => account.Id == request.AccountId && account.UserId == CurrentUserId, cancellationToken);
 
+        var account = accounts.FirstOrDefault();
         if (account == null)
         {
             return ResponseFactory.BadRequest(Errors.ACCOUNT_WITH_GIVEN_ID_DOES_NOT_EXIST(request.AccountId));

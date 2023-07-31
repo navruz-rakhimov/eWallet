@@ -31,7 +31,10 @@ public class GetAccountListHandler : BaseHandler<GetAccountListRequest, List<Acc
 
     public override async Task<BaseResponse<List<AccountDto>>> Handle(GetAccountListRequest request, CancellationToken cancellationToken)
     {
-        var accountList = _unitOfWork.AccountRepository.GetAllAsQueryable();
+        var accountList = _unitOfWork.AccountRepository
+            .GetAllAsQueryable()
+            .Where(account => account.UserId == CurrentUserId);
+        
         var accountDtoList = _mapper.ProjectTo<AccountDto>(accountList);
 
         return ResponseFactory.Ok(await accountDtoList.ToListAsync(cancellationToken));

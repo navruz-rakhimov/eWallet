@@ -39,10 +39,23 @@ public class HmacAuthenticationAttribute : ActionFilterAttribute
     public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
         var request = context.HttpContext.Request;
+        var contentString = "";
+        
+        using StreamReader sr = new(request.Body);
+        if (request.Body.CanSeek)
+            request.Body.Seek(0, SeekOrigin.Begin);
+        if (request.Body.CanRead)
+            contentString = await sr.ReadToEndAsync();
         
         if (!request.Headers.TryGetValue("X-UserId", out var userIdHeaderValue))
         {
             context.Result = new BadRequestObjectResult("X-UserId header is missing");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(contentString))
+        {
+            await next();
             return;
         }
         
@@ -57,15 +70,7 @@ public class HmacAuthenticationAttribute : ActionFilterAttribute
             context.Result = new BadRequestObjectResult($"API Key not found for user with id = {userIdHeaderValue}");
             return;
         }
-        
-        var contentString = "";
-        
-        using StreamReader sr = new(request.Body);
-        if (request.Body.CanSeek)
-            request.Body.Seek(0, SeekOrigin.Begin);
-        if (request.Body.CanRead)
-            contentString = await sr.ReadToEndAsync();
-        
+
         var hashString = ComputeHashString(contentString , ClientApiKeys[userIdHeaderValue.ToString()]);
 
         if (!hashString.Equals(digestHeaderValue))

@@ -43,7 +43,8 @@ public class GetTransactionListRequestHandler : BaseHandler<GetTransactionListRe
         // todo: implement proper filtering
         
         var transactions = _unitOfWork.TransactionRepository
-            .GetAllAsQueryable();
+            .GetAllAsQueryable()
+            .Where(t => t.FromAccount.UserId.Equals(CurrentUserId) || t.ToAccount.UserId.Equals(CurrentUserId));
 
         if (request.Filter?.StartDate is not null)
             transactions = transactions.Where(t => t.CreatedAt >= request.Filter.StartDate);
