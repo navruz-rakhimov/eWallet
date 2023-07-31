@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using EWallet.Application.Accounts;
 using EWallet.Application.Common.Interfaces.UnitOfWork;
+using EWallet.Application.Common.Mediatr.Handlers;
 using EWallet.Application.Common.Mediatr.Requests;
 using EWallet.Application.Common.Responses;
 using EWallet.Application.Transactions.Dtos;
 using EWallet.Domain.Entities;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 
 namespace EWallet.Application.Transactions.Requests.CreateTransaction;
 
@@ -19,20 +21,22 @@ public class CreateTransactionRequest : BaseRequest<TransactionDto>
     }
 }
 
-public class CreateTransactionRequestHandler : IRequestHandler<CreateTransactionRequest, BaseResponse<TransactionDto>>
+public class CreateTransactionRequestHandler : BaseHandler<CreateTransactionRequest, TransactionDto>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
     public CreateTransactionRequestHandler(
         IUnitOfWork unitOfWork,
-        IMapper mapper)
+        IMapper mapper,
+        IHttpContextAccessor httpContextAccessor) 
+        : base(httpContextAccessor)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
     
-    public async Task<BaseResponse<TransactionDto>> Handle(CreateTransactionRequest request, CancellationToken cancellationToken)
+    public override async Task<BaseResponse<TransactionDto>> Handle(CreateTransactionRequest request, CancellationToken cancellationToken)
     {
         // todo: create validator service
         

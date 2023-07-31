@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
+using EWallet.Application.Common.Mediatr.Handlers;
 using EWallet.Application.Common.Mediatr.Requests;
 using EWallet.Application.Common.Responses;
 using EWallet.Application.Users.Dtos;
 using EWallet.Domain.Entities;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
 namespace EWallet.Application.Users.Requests.GetUser;
@@ -18,20 +20,22 @@ public class GetUserByIdRequest : BaseRequest<UserDto>
     }
 }
 
-public class GetUserByIdHandler : IRequestHandler<GetUserByIdRequest, BaseResponse<UserDto>>
+public class GetUserByIdHandler : BaseHandler<GetUserByIdRequest, UserDto>
 {
     private readonly UserManager<User> _userManager;
     private readonly IMapper _mapper;
 
     public GetUserByIdHandler(
         IMapper mapper,
-        UserManager<User> userManager)
+        IHttpContextAccessor httpContextAccessor,
+        UserManager<User> userManager) 
+        : base(httpContextAccessor)
     {
         _mapper = mapper;
         _userManager = userManager;
     }
 
-    public async Task<BaseResponse<UserDto>> Handle(GetUserByIdRequest request, CancellationToken cancellationToken)
+    public override async Task<BaseResponse<UserDto>> Handle(GetUserByIdRequest request, CancellationToken cancellationToken)
     {
         var user = await _userManager.FindByIdAsync(request.UserId.ToString());
 

@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using EWallet.Application.Accounts.Dtos;
 using EWallet.Application.Common.Interfaces.UnitOfWork;
+using EWallet.Application.Common.Mediatr.Handlers;
 using EWallet.Application.Common.Mediatr.Requests;
 using EWallet.Application.Common.Responses;
 using EWallet.Application.Users;
 using EWallet.Domain.Entities;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
 namespace EWallet.Application.Accounts.Requests.CreateAccount;
@@ -20,7 +22,7 @@ public class CreateAccountRequest : BaseRequest<AccountDto>
     }
 }
 
-public class CreateAccountRequestHandler : IRequestHandler<CreateAccountRequest, BaseResponse<AccountDto>>
+public class CreateAccountRequestHandler : BaseHandler<CreateAccountRequest, AccountDto>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly UserManager<User> _userManager;
@@ -29,14 +31,16 @@ public class CreateAccountRequestHandler : IRequestHandler<CreateAccountRequest,
     public CreateAccountRequestHandler(
         IMapper mapper,
         IUnitOfWork unitOfWork,
-        UserManager<User> userManager)
+        UserManager<User> userManager,
+        IHttpContextAccessor httpContextAccessor) 
+        : base(httpContextAccessor)
     {
         _mapper = mapper;
         _unitOfWork = unitOfWork;
         _userManager = userManager;
     }
     
-    public async Task<BaseResponse<AccountDto>> Handle(CreateAccountRequest request, CancellationToken cancellationToken)
+    public override async Task<BaseResponse<AccountDto>> Handle(CreateAccountRequest request, CancellationToken cancellationToken)
     {
         var user = await _userManager.FindByIdAsync(request.Payload.UserId.ToString());
 

@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using EWallet.Application.Accounts.Dtos;
 using EWallet.Application.Common.Interfaces.UnitOfWork;
+using EWallet.Application.Common.Mediatr.Handlers;
 using EWallet.Application.Common.Mediatr.Requests;
 using EWallet.Application.Common.Responses;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using static EWallet.Application.Accounts.AccountConstants;
 
 namespace EWallet.Application.Accounts.Requests.GetAccountById;
@@ -18,20 +20,22 @@ public class GetAccountByIdRequest : BaseRequest<AccountDto>
     }
 }
 
-public class GetAccountByIdHandler : IRequestHandler<GetAccountByIdRequest, BaseResponse<AccountDto>>
+public class GetAccountByIdHandler : BaseHandler<GetAccountByIdRequest, AccountDto>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
     public GetAccountByIdHandler(
         IMapper mapper,
+        IHttpContextAccessor httpContextAccessor,
         IUnitOfWork unitOfWork)
+        : base(httpContextAccessor)
     {
         _mapper = mapper;
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<BaseResponse<AccountDto>> Handle(GetAccountByIdRequest request, CancellationToken cancellationToken)
+    public override async Task<BaseResponse<AccountDto>> Handle(GetAccountByIdRequest request, CancellationToken cancellationToken)
     {
         var account = await _unitOfWork.AccountRepository.GetAsync(request.AccountId, cancellationToken: cancellationToken);
 
