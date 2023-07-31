@@ -1,3 +1,4 @@
+using EWallet.API.Swagger.Filters;
 using EWallet.Application;
 using EWallet.Infrastructure;
 using EWallet.Infrastructure.Common.Filters;
@@ -10,11 +11,16 @@ var builder = WebApplication.CreateBuilder(args);
         {
             options.Filters.Add<BaseResponseActionResultFilter>();
         });
+
+    builder.Services.AddHttpContextAccessor();
         
     builder.Services.AddFluentValidationAutoValidation();
 
     builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
+    builder.Services.AddSwaggerGen(options =>
+    {
+        options.OperationFilter<RequiredHeaderParameter>();
+    });
 
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddApplication();
